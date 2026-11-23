@@ -1,75 +1,52 @@
-#include <iostream>
-#include <vector>
+#include "Heap.h"
 
-using namespace std;
+void Heap::siftDown(int i) {
+    int size = data.size();
+    int largest = i;
+    int l = 2 * i + 1;
+    int r = 2 * i + 2;
 
-class Node {
-public:
-    int value;
-    Node(int v) : value(v){}
-};
+    if (l < size && data[l] > data[largest]) largest = l;
+    if (r < size && data[r] > data[largest]) largest = r;
 
-class Heap {
-private:
-    vector<Node> data;
-    int left(int i) {return 2 * i + 1;}
-    int right(int i){ return 2 * i + 2;}
-    int parent(int i) {return (i - 1) / 2;}
-
-    void siftDown(int n, int i) {
-        int largest = i;
-        int l = left(i);
-        int r = right(i);
-
-        if (l < n && data[l].value > data[largest].value)
-            largest = l;
-        if (r < n && data[r].value > data[largest].value)
-            largest = r;
-
-        if (largest != i) {
-            swap(data[i], data[largest]);
-            siftDown(n, largest);
-        }
+    if (largest != i) {
+        std::swap(data[i], data[largest]);
+        siftDown(largest);
     }
+}
 
-    void siftUp(int i) {
-        while (i > 0 && data[parent(i)].value < data[i].value) {
-            swap(data[i], data[parent(i)]);
-            i = parent(i);
-        }
+void Heap::siftUp(int i) {
+    while (i > 0 && data[(i - 1) / 2] < data[i]) {
+        std::swap(data[i], data[(i - 1) / 2]);
+        i = (i - 1) / 2;
     }
+}
 
-public:
+void Heap::push(int val) {
+    data.push_back(val);
+    siftUp(data.size() - 1);
+}
 
-    int size(){return data.size(); }
-    bool empty(){return data.empty(); }
-
-    Heap(vector<int>& arr) {
-        for (int i = 0; i < (int)arr.size(); ++i) {
-            data.emplace_back(arr[i]);
-        }
+int Heap::pop() {
+    if (empty()) throw out_of_range("empty");
+    int topVal = data[0];
+    data[0] = data.back();
+    data.pop_back();
+    if (!data.empty()) {
+        siftDown(0);
     }
+    return topVal;
+}
 
-    void push(int value) {
-        data.emplace_back(value);
-        siftUp(data.size() - 1);
-    }
+int Heap::top() const {
+    if (empty()) throw out_of_range("empty");
+    return data[0];
+}
 
-    int pop() {
-        int top = data.front().value;
-        data.front() = data.back();
-        data.pop_back();
-        if (!data.empty())
-            siftDown(data.size(), 0);
-        return top;
-    }
+bool Heap::empty() const {
+    return data.empty();
+}
 
-    void print(){
-        for (int i = 0; i < data.size(); ++i) {
-            cout << data[i].value;
-            if (i + 1 != data.size()) cout << ' ';
-        }
-        cout << endl;
-    }
-
-};
+int Heap::getSize() const {
+    return data.size();
+}
