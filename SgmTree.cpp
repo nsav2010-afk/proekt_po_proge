@@ -1,101 +1,44 @@
-#include <iostream>
-#include <vector>
+#include "segmenttree.h"
 
-using namespace std;
+SegmentTree::SegmentTree(vector<int>& arr) {
+    n = arr.size();
+    tree.resize(4 * n);
+    if (n > 0) build(arr, 1, 0, n - 1);
+}
 
-class Node {
-private:
-    int value;
-    Node *left, *right;
-public:
-    Node(int v) {
-        value = v;
-        left  = nullptr;
-        right = nullptr;
+void SegmentTree::build(vector<int>& arr, int node, int start, int end) {
+    if (start == end) tree[node] = arr[start];
+    else {
+        int mid = (start + end) / 2;
+        build(arr, 2 * node, start, mid);
+        build(arr, 2 * node + 1, mid + 1, end);
+        tree[node] = tree[2 * node] + tree[2 * node + 1];
     }
+}
 
-    int   getValue() const {
-        return value;
+void SegmentTree::update(int node, int start, int end, int idx, int val) {
+    if (start == end) tree[node] = val;
+    else {
+        int mid = (start + end) / 2;
+        if (idx <= mid) update(2 * node, start, mid, idx, val);
+        else update(2 * node + 1, mid + 1, end, idx, val);
+        tree[node] = tree[2 * node] + tree[2 * node + 1];
     }
-    Node* getLeft()  const {
-        return left;
-    }
-    Node* getRight() const {
-        return right;
-    }
+}
 
-    void setValue(int v) {
-        value = v;
-    }
-    void setLeft(Node* l) {
-        left  = l;
-    }
-    void setRight(Node* r) {
-        right = r;
-    }
+int SegmentTree::query(int node, int start, int end, int l, int r) {
+    if (r < start || end < l) return 0;
+    if (l <= start && end <= r) return tree[node];
+    int mid = (start + end) / 2;
+    return query(2 * node, start, mid, l, r) + query(2 * node + 1, mid + 1, end, l, r);
+}
 
-    ~Node(){
+void SegmentTree::update(int idx, int val) {
+    if (idx < 0 || idx >= n) throw out_of_range("index out");
+    update(1, 0, n - 1, idx, val);
+}
 
-    }
-};
-
-class Tree {
-private:
-    Node *root;
-    int   n;
-
-    Node* build(vector<int>& a, int tl, int tr) {
-        if (tl == tr) {
-            return new Node(a[tl]);
-        }
-        int tm = (tl + tr) / 2;
-        Node* l = build(a, tl, tm);
-        Node* r = build(a, tm + 1, tr);
-
-        Node* cur = new Node(l->getValue() + r->getValue());
-
-        cur->setLeft(l);
-        cur->setRight(r);
-        return cur;
-    }
-
-    int queryNode(Node* node, int tl, int tr, int l, int r) const {
-        if (l > r) return 0;
-
-        if (l == tl && r == tr) {
-            return node->getValue();
-        }
-        int tm = (tl + tr) / 2;
-        int sumLeft  = queryNode(node->getLeft(), tl, tm, l, min(r, tm));
-        int sumRight = queryNode(node->getRight(), tm + 1, tr, max(l, tm + 1), r);
-
-        return sumLeft + sumRight;
-    }
-
-    void destroy(Node* node) {
-        if (!node) return;
-        destroy(node->getLeft());
-        destroy(node->getRight());
-        delete node;
-    }
-
-public:
-    Tree() {
-        root = nullptr;
-        n = 0;
-    }
-
-    void buildTree(vector<int>& a) {
-        n = (int)a.size();
-        if (n == 0) { root = nullptr; return; }
-        root = build(a, 0, n - 1);
-    }
-
-    int query(int l, int r) const {
-        return queryNode(root, 0, n - 1, l - 1, r - 1);
-    }
-
-    ~Tree() {
-        delete(root);
-    }
-};
+int SegmentTree::query(int l, int r) {
+    if (l < 0 || r >= n || l > r) throw out_of_range("range out");
+    return query(1, 0, n - 1, l, r);
+}
