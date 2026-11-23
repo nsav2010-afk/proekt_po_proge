@@ -1,30 +1,25 @@
-#include <iostream>
-#include <vector>
+#include "Stack.h"
 
-using namespace std;
+void Stack::push(int val) {
+    data.push_back(val);
+}
 
-class Stack {
-private:
-    vector<int> data;
-public:
-    void push(int val) {
-        data.push_back(val);
-    }
+int Stack::pop() {
+    if (empty()) throw out_of_range("empty");
+    int val = data.back();
+    data.pop_back();
+    return val;
+}
 
-    void pop() {
-        if (data.empty()) return;
-        data.pop_back();
-    }
+int Stack::top()  {
+    if (empty()) throw out_of_range("empty");
+    return data.back();
+}
 
-    int top() {
-        if (data.empty()) return -1;
-        return data.back();
-    }
+bool Stack::empty() {
+    return data.empty();
+}
 
-    bool empty() {
-        return data.empty();
-    }
-    int size() {
-        return data.size();
-    }
-};
+int Stack::size() {
+    return data.size();
+}
