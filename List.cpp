@@ -1,53 +1,62 @@
-#include <iostream>
+#include "List.h"
 
-using namespace std;
+ListNode::ListNode(int v) : val(v), prev(nullptr), next(nullptr) {}
 
-struct ListNode {
-    int val;
-    ListNode* prev;
-    ListNode* next;
-    ListNode(int v) : val(v), prev(nullptr), next(nullptr) {}
-};
+DoublyLinkedList::DoublyLinkedList() : head(nullptr), tail(nullptr), sz(0) {}
 
-class DoublyLinkedList {
-private:
-    ListNode* head;
-    ListNode* tail;
-    int sz;
-public:
-    DoublyLinkedList() : head(nullptr), tail(nullptr), sz(0) {}
-
-    void push_back(int val) {
-        ListNode* node = new ListNode(val);
-        if (!head) { head = tail = node; }
-        else {
-            tail->next = node;
-            node->prev = tail;
-            tail = node;
-        }
-        sz++;
+DoublyLinkedList::~DoublyLinkedList() {
+    while (head) {
+        ListNode* temp = head;
+        head = head->next;
+        delete temp;
     }
+}
 
-    void push_front(int val) {
-        ListNode* node = new ListNode(val);
-        if (!head) { head = tail = node; }
-        else {
-            node->next = head;
-            head->prev = node;
-            head = node;
-        }
-        sz++;
+void DoublyLinkedList::push_back(int val) {
+    ListNode* node = new ListNode(val);
+    if (!head) { head = tail = node; }
+    else {
+        tail->next = node;
+        node->prev = tail;
+        tail = node;
     }
+    sz++;
+}
 
-    void print() {
-        ListNode* cur = head;
-        while (cur) {
-            cout << cur->val << " ";
-            cur = cur->next;
-        }
-        cout << endl;
+void DoublyLinkedList::push_front(int val) {
+    ListNode* node = new ListNode(val);
+    if (!head) { head = tail = node; }
+    else {
+        node->next = head;
+        head->prev = node;
+        head = node;
     }
-    int size(){
-        return sz;
-    }
-};
+    sz++;
+}
+
+int DoublyLinkedList::pop_back() {
+    if (empty()) throw out_of_range("empty");
+    int val = tail->val;
+    ListNode* temp = tail;
+    tail = tail->prev;
+    if (tail) tail->next = nullptr;
+    else head = nullptr;
+    delete temp;
+    sz--;
+    return val;
+}
+
+int DoublyLinkedList::pop_front() {
+    if (empty()) throw out_of_range("empty");
+    int val = head->val;
+    ListNode* temp = head;
+    head = head->next;
+    if (head) head->prev = nullptr;
+    else tail = nullptr;
+    delete temp;
+    sz--;
+    return val;
+}
+
+int DoublyLinkedList::size() { return sz; }
+bool DoublyLinkedList::empty() { return sz == 0; }
