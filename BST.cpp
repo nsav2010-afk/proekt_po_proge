@@ -1,185 +1,91 @@
-#include <iostream>
+#include "BST.h"
 
-using namespace std;
+Node::Node(int v) : value(v), left(nullptr), right(nullptr) {}
+Node::~Node() {}
 
-class Node {
-private:
-    int value;
-    Node *left, *right;
-public:
-    Node(int i) {
-        value = i;
-        left = nullptr;
-        right = nullptr;
-    }
+int Node::getValue(){ return value; }
+Node* Node::getLeft(){ return left; }
+Node* Node::getRight(){ return right; }
+void Node::setValue(int v){ value = v; }
+void Node::setLeft(Node* l){ left = l; }
+void Node::setRight(Node* r){ right = r; }
 
-    int getValue() const {
-        return value;
-    }
+void Node::print() {
+    if (left) left->print();
+    cout << value << " ";
+    if (right) right->print();
+}
 
-    Node* getLeft() const {
-        return left;
-    }
+BST::BST() : root(nullptr) {}
+BST::BST(int value) { root = new Node(value); }
 
-    Node* getRight() const {
-        return right;
-    }
+void BST::destroy(Node* node) {
+    if (!node) return;
+    destroy(node->getLeft());
+    destroy(node->getRight());
+    delete node;
+}
 
-    void setValue(int v){
-        value = v;
-    }
-    void setLeft(Node* l){
-        left  = l;
-    }
-    void setRight(Node* r){
-        right = r;
-    }
+BST::~BST() { destroy(root); }
 
-    ~Node() {
-    }
-
-    void print() const {
-        if (left)  left->print();
-        cout << value << " ";
-        if (right) right->print();
-    }
-};
-
-class BST {
-private:
-    Node *root;
-    int size;
-public:
-    BST() {
-        root = nullptr;
-    }
-    BST(int value) {
-        Node *node = new Node(value);
-        root = node;
-    }
-    Node* getRoot() const{
-        return root;
-    }
-    ~BST() {
-        delete root;
-    }
-    int siz(Node* node){
-        if (node == nullptr) return 0;
-        return 1 + siz(node->getLeft()) + siz(node->getRight());
-    }
-    int isEmpty(Node *root){
-        if(root == nullptr) return true;
-        return false;
-    }
-
-
-    void insert(int value) {
-        Node* current = root;
-        if (root == nullptr) {
-            root = new Node(value);
-            return;
+void BST::insert(int value) {
+    if (root == nullptr) { root = new Node(value); return; }
+    Node* current = root;
+    while (true) {
+        if (value > current->getValue()) {
+            if (current->getRight() == nullptr) { current->setRight(new Node(value)); return; }
+            current = current->getRight();
         }
-
-        while (true) {
-            if (value > current->getValue()) {
-                if (current->getRight() == nullptr) {
-                    current->setRight(new Node(value));
-                    return;
-                }
-                current = current->getRight();
-            }
-            else if (value < current->getValue()) {
-                if (current->getLeft() == nullptr) {
-                    current->setLeft(new Node(value));
-                    return;
-                }
-                current = current->getLeft();
-            }
-            else {
-                return;
-            }
+        else if (value < current->getValue()) {
+            if (current->getLeft() == nullptr) { current->setLeft(new Node(value)); return; }
+            current = current->getLeft();
         }
-
+        else return; // Дубликаты не добавляем
     }
+}
 
-
-    bool contains(int value) const {
-        Node* current = root;
-
-        while (current != nullptr) {
-            if (value > current->getValue()) {
-                current = current->getRight();
-            }
-            else if (value < current->getValue()) {
-                current = current->getLeft();
-            }
-            else {
-                return true;
-            }
-        }
-        return false;
+bool BST::contains(int value){
+    Node* current = root;
+    while (current != nullptr) {
+        if (value > current->getValue()) current = current->getRight();
+        else if (value < current->getValue()) current = current->getLeft();
+        else return true;
     }
+    return false;
+}
 
-    void print() const {
-        if (root == nullptr) {
-            return;
-        }
-        root->print();
-        cout << endl;
+void BST::remove(int value) {
+    Node* parent = nullptr;
+    Node* current = root;
+    while (current != nullptr && current->getValue() != value) {
+        parent = current;
+        if (value < current->getValue()) current = current->getLeft();
+        else current = current->getRight();
     }
-
-
-    void remove(int value) {
-
-        Node* parent  = nullptr;
-        Node* current = root;
-
-        while (current != nullptr && current->getValue() != value) {
-            parent = current;
-            if (value < current->getValue()) current = current->getLeft();
-            else current = current->getRight();
-        }
-
-        if (current == nullptr) {
-            return;
-        }
-        if (current->getLeft() == nullptr || current->getRight() == nullptr) {
-            Node* child = nullptr;
-            if (current->getLeft() != nullptr) {
-                child = current->getLeft();
-            } else {
-                child = current->getRight();
-            }
-
-            if (parent == nullptr) {
-                root = child;
-            } else if (parent->getLeft() == current) {
-                parent->setLeft(child);
-            } else {
-                parent->setRight(child);
-            }
-
-            delete current;
-            return;
-        }
-
-        Node* minParent = current;
-        Node* minNode   = current->getRight();
-
-        while (minNode->getLeft() != nullptr) {
-            minParent = minNode;
-            minNode   = minNode->getLeft();
-        }
-
-        current->setValue(minNode->getValue());
-
-        if (minParent->getLeft() == minNode) {
-            minParent->setLeft(minNode->getRight());
-        } else {
-            minParent->setRight(minNode->getRight());
-        }
-
-        delete minNode;
+    if (current == nullptr) return;
+    if (current->getLeft() == nullptr || current->getRight() == nullptr) {
+        Node* child = current->getLeft() ? current->getLeft() : current->getRight();
+        if (parent == nullptr) root = child;
+        else if (parent->getLeft() == current) parent->setLeft(child);
+        else parent->setRight(child);
+        delete current;
+        return;
     }
+    Node* minParent = current;
+    Node* minNode = current->getRight();
+    while (minNode->getLeft() != nullptr) {
+        minParent = minNode;
+        minNode = minNode->getLeft();
+    }
+    current->setValue(minNode->getValue());
+    if (minParent->getLeft() == minNode) minParent->setLeft(minNode->getRight());
+    else minParent->setRight(minNode->getRight());
+    delete minNode;
+}
 
-};
+void BST::print(){
+    if (root) root->print();
+    cout << endl;
+}
+
+bool BST::isEmpty(){ return root == nullptr; }
